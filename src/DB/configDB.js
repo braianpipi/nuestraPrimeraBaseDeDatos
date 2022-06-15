@@ -14,10 +14,17 @@
 export const options={
     client: 'mysql',
     connection : {
-        host:'localhost',
+        host:'127.0.0.1',
         user:'root',
-        password:'xxxxxx',
-        database:'tienda'
+        password:'',
+        database:'ecommerce'
     },
-    pool:{ min : 0, max:10}
+    pool:{ min : 0, max:10},
+    sqlite:{
+        client:'sqlite3',
+            connection:{
+                filename:'./ecommerce.sqlite'
+            },
+            useNullAsDefault:true
+    },
 };
