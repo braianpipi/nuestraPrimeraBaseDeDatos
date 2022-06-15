@@ -21,12 +21,28 @@ export default class Contenedor {
   }
   async save(obj) {
     try {
-      const nuevoProducto = this.knex(this.table).insert(obj);
-      return nuevoProducto;
+      const existe = await this.knex.schema.hasTable(this.table);
+      if(existe){
+        await this.knex(this.table).insert(obj)
+        const res= JSON.stringify(await this.knex.from(this.table).select('*').orderBy('id','desc').limit(1))
+        const resultado = JSON.parse(res)
+        return resultado
+    } else {
+        await this.knex.schema.createTable('productos',table=>{
+            table.increments('id').primary().unique()
+            table.string('title',50).notNullable()
+            table.float('price').notNullable()
+            table.string('thumbnail',200).notNullable()
+          })
+        await this.knex(this.table).insert(obj)
+        const res= JSON.stringify(await this.knex.from(this.table).select('*').orderBy('id','desc').limit(1))
+        const result = JSON.parse(res)
+            return result
+        }
+        
     } catch (error) {
       console.log("error", error);
-    }
-  }
+    }}
   async getById(idBuscado) {
     try {
       let producto = await this.knex
@@ -49,7 +65,7 @@ export default class Contenedor {
       console.log("error", error);
     }
   }
-  deleteAll() {
+  async deleteAll() {
     try {
         return await this.knex.from(this.table).del()
     } catch (error) {
