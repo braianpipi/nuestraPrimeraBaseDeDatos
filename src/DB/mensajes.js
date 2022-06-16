@@ -1,47 +1,63 @@
 import knex from "knex";
+import { options} from "./configDB.js"
+const db = knex(options.sqlite);
+const table = "messages";
+
 
 export default class Chat {
-  constructor(options, table) {
-    this.knex = knex(options);
-    this.table = table;
+  constructor() {
   }
 
   async getByAll() {
     try {
-      const todos = await this.knex.schema.hasTable(this.table);
-      if(todos){
-        const res = JSON.stringify(await this.knex.from(this.table).select('*'));
-        const resultado = JSON.parse(res)
-        return resultado
-      }
-      return todos;
+      const allMessages = await db(table).select("*");
+      res.status(200).json({ messages: allMessages });
     } catch (error) {
-      console.log("error", error);
+      res.status(500).json({ message: error.message });
     }
   }
   async save(obj) {
     try {
-      const existe = await this.knex.schema.hasTable(this.table);
-      if(existe){
-        await this.knex(this.table).insert(obj)
-        const res= JSON.stringify(await this.knex.from(this.table).select('*').orderBy('id','desc').limit(1))
-        const resultado = JSON.parse(res)
-        return resultado
-    } else {
-        await this.knex.schema.createTable('usuarios',table=>{
-            table.increments('id').primary().unique()
-            table.string('email',100).notNullable()
-            table.string('message').notNullable()
-          })
-        await this.knex(this.table).insert(obj)
-        const res= JSON.stringify(await this.knex.from(this.table).select('*').orderBy('id','desc').limit(1))
-        const result = JSON.parse(res)
-            return result
-        }
-        
+      const email = obj.email;
+      const date = obj.date;
+      const text = obj.text;
+      const messageAdd = await db(table).insert({
+        email,
+        date,
+        text
+            });
+      const new_message = await db(table).select("*").where("id", messageAdd);
+      res.status(201).json({
+        message: "Message created",
+        new_product: new_message,
+      });
     } catch (error) {
-      console.log("error", error);
-    }}
+      res.status(500).json({ message: error.message });
+    }
+  }
+}
+    // try {
+    //   const existe = await db.schema.hasTable(table);
+    //   if(existe){
+    //     await db(table).insert(obj)
+    //     const res= JSON.stringify(await db.from(table).select('*').orderBy('id','desc').limit(1))
+    //     const resultado = JSON.parse(res)
+    //     return resultado
+    // } else {
+    //     await db.schema.createTable('usuarios',table=>{
+    //         table.increments('id').primary().unique()
+    //         table.string('email',100).notNullable()
+    //         table.string('message').notNullable()
+    //       })
+    //     await db(this.table).insert(obj)
+    //     const res= JSON.stringify(await db.from(table).select('*').orderBy('id','desc').limit(1))
+    //     const result = JSON.parse(res)
+    //         return result
+    //     }
+        
+    // } catch (error) {
+    //   console.log("error", error);
+    // }}
   
   // async getById(idBuscado) {
   //   try {
@@ -74,4 +90,3 @@ export default class Chat {
   //     console.log("error", error);
   //   }
   // }
-}

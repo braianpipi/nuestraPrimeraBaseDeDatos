@@ -17,7 +17,7 @@ import { Server } from "socket.io";
 import http from "http";
 import Chat from "./DB/mensajes.js";
 import Contenedor from "./apiClass.js";
-import knex from "knex";
+// import knex from "knex";
 
 
 const ioServer = Server;
@@ -25,11 +25,11 @@ const app = express();
 const httpServer = http.createServer(app);
 const io = new ioServer(httpServer);
 const PORT = 8080;
-const containerProducts = new Contenedor(options.mysql, "productos");
+const containerProducts = new Contenedor();
 const content = new Chat(options.sqlite, "usuarios");
 
 
-app.use(express.static(__dirname + "/public"));
+app.use(express.static("./public"));
 app.use(morgan("dev"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -49,15 +49,8 @@ app.set("view engine", "ejs");
 //   }
 // })();
 
-app.get("/", async (req, res) => {
-  const products = await containerProducts.getByAll();
-  res.render("index.ejs", { products: products });
-});
-app.post("/productos", (req, res) => {
-  const products = req.body;
-  containerProducts.save(products);
-  res.redirect("/");
-});
+app.get("/", containerProducts.getByAll);
+app.post("/productos", containerProducts.save);
 
 let messages = [];
 async function chat() {
